@@ -1,0 +1,330 @@
+<?php
+
+/**
+ * Se crea el formulario de pasos.
+ */
+function test_mod_form($form, &$form_state) {
+	$form_state['step'] = isset($form_state['step']) ? $form_state['step'] : 1;
+
+	$form['#prefix'] = '<div id="test_mod_form">';
+	$form['#suffix'] = '</div>';
+
+	switch($form_state['step'])
+	{
+		// Step 1
+		case 1:
+			$form['step_1'] = array
+			(
+				'#type' => 'fieldset',
+				'#title' => t('Paso uno'),
+			  '#collapsible' => TRUE,
+        '#collapsed' => FALSE,
+			);
+
+      $form['step_1']['names'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Nombres'),
+				'#required' => TRUE,
+				'#default_value' => isset($form_state['storage'][$form_state['step']]['names']) ? $form_state['storage'][$form_state['step']]['names'] : '',
+      );
+
+      $form['step_1']['s_names'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Apellidos'),
+				'#required' => TRUE,
+				'#default_value' => isset($form_state['storage'][$form_state['step']]['s_names']) ? $form_state['storage'][$form_state['step']]['s_names'] : '',
+      );
+
+      $form['step_1']['address'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Dirección'),
+				'#required' => TRUE,
+				'#default_value' => isset($form_state['storage'][$form_state['step']]['address']) ? $form_state['storage'][$form_state['step']]['address'] : '',
+			);
+
+			$options = getContries("​9c4b934fa05d024d36d618565ba13407");
+
+      $form['step_1']['country'] = array(
+        '#type' => 'select',
+				'#title' => t('País'),
+				'#options' => $options,
+				'#required' => TRUE,
+				'#default_value' => isset($form_state['storage'][$form_state['step']]['country']) ? $form_state['storage'][$form_state['step']]['country'] : '',
+      );
+			break;
+
+		// Step 2
+		case 2:
+			$form['step_2'] = array
+			(
+				'#type' => 'fieldset',
+				'#title' => t('Paso dos'),
+			  '#collapsible' => TRUE,
+        '#collapsed' => FALSE,
+			);
+
+			$country = $form_state['storage'][1]['country'];
+			$deptos = getDeptos('9c4b934fa05d024d36d618565ba13407', $country);
+
+      $form['step_2']['depto'] = array(
+        '#type' => 'select',
+        '#title' => t('Departamento'),
+				'#options' => $deptos,
+				'#required' => TRUE,
+				'#default_value' => isset($form_state['storage'][$form_state['step']]['depto']) ? $form_state['storage'][$form_state['step']]['depto'] : '',
+      );
+
+      $form['step_2']['image'] = array(
+        '#type' => 'managed_file',
+        '#title' => t('Foto'),
+				'#upload_location' => 'public://',
+				'#required' => TRUE,
+				'#default_value' => isset($form_state['storage'][$form_state['step']]['image']) ? $form_state['storage'][$form_state['step']]['image'] : '',
+			);
+
+      $form['step_2']['phone'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Teléfono'),
+				'#required' => TRUE,
+				'#default_value' => isset($form_state['storage'][$form_state['step']]['phone']) ? $form_state['storage'][$form_state['step']]['phone'] : '',
+      );
+
+      $form['step_2']['state'] = array(
+        '#type' => 'radios',
+        '#title' => t('Estado civil'),
+        '#options' => array(
+          0 => t('Soltero'),
+          1 => t('Casado'),
+        ),
+				'#required' => TRUE,
+				'#default_value' => isset($form_state['storage'][$form_state['step']]['state']) ? $form_state['storage'][$form_state['step']]['state'] : '',
+      );
+
+			break;
+
+		// Step 3
+		case 3:
+			$form['step_3'] = array
+			(
+				'#type' => 'fieldset',
+				'#title' => t('Paso tres'),
+			  '#collapsible' => TRUE,
+        '#collapsed' => FALSE,
+      );
+
+      $form['step_3']['age'] = array(
+        '#type' => 'select',
+        '#title' => t('Edad'),
+        '#options' => array(
+          18 => 18,
+          19 => 19,
+          20 => 20,
+          21 => 21,
+          22 => 22,
+          23 => 23,
+        ),
+				'#required' => TRUE,
+				'#default_value' => isset($form_state['storage'][$form_state['step']]['age']) ? $form_state['storage'][$form_state['step']]['age'] : '',
+      );
+
+      $form['step_3']['description'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Descripción'),
+				'#required' => TRUE,
+				'#default_value' => isset($form_state['storage'][$form_state['step']]['description']) ? $form_state['storage'][$form_state['step']]['description'] : '',
+      );
+
+      $form['step_3']['acept'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Acepto términos y condiciones'),
+				'#required' => TRUE,
+				'#default_value' => isset($form_state['storage'][$form_state['step']]['acept']) ? $form_state['storage'][$form_state['step']]['acept'] : '',
+      );
+
+			break;
+	}
+
+	$form['buttons'] = array
+	(
+		'#type' => 'container',
+	);
+
+	if($form_state['step'] !== 1)
+	{
+		$form['buttons']['back'] = array
+		(
+			'#type' => 'submit',
+			'#value' => t('Back'),
+			'#limit_validation_errors' => array(),
+			'#submit' => array('test_mod_form_back_submit'),
+			'#ajax' => array
+			(
+				'wrapper' => 'test_mod_form',
+				'callback' => 'test_mod_form_ajax_callback',
+			),
+		);
+	}
+
+	if($form_state['step'] !== 3)
+	{
+		$form['buttons']['forward'] = array
+		(
+			'#type' => 'submit',
+			'#value' => t('Next'),
+			'#ajax' => array
+			(
+				'wrapper' => 'test_mod_form',
+				'callback' => 'test_mod_form_ajax_callback',
+			),
+		);
+	}
+
+	else
+	{
+		$form['buttons']['submit'] = array
+		(
+			'#type' => 'submit',
+			'#value' => t('Submit'),
+			'#ajax' => array
+			(
+				'wrapper' => 'test_mod_form',
+				'callback' => 'test_mod_form_ajax_callback',
+			),
+		);
+	}
+
+	return $form;
+}
+
+/**
+ * Función para validar el form.
+ */
+function test_mod_form_validate($form, &$form_state) {
+}
+
+/**
+ * Función para devolver el paso.
+ */
+function test_mod_form_back_submit($form, &$form_state) {
+	$form_state['step']--;
+	$form_state['rebuild'] = TRUE;
+}
+
+/**
+ * Función para avanzar o enviar la info del formulario.
+ */
+function test_mod_form_submit($form, &$form_state) {
+	$step = $form_state['step'];
+	$form_state['storage'][$step] = $form_state['values'];
+	if(isset($form_state['values']['forward']) && $form_state['values']['op'] == $form_state['values']['forward']) {
+		$form_state['step']++;
+	}
+	elseif(isset($form_state['values']['submit']) && $form_state['values']['op'] == $form_state['values']['submit']) {
+		$items = array($form_state['storage']);
+		saveNode($items);
+		drupal_set_message(t('Registro creado con éxito!'));
+		$form_state['step'] = 1;
+		$form_state['storage'] = array();
+	}
+	$form_state['rebuild'] = TRUE;
+}
+
+/**
+ * Función callback para retorno de ajax.
+ */
+function test_mod_form_ajax_callback($form, &$form_state) {
+	return $form;
+}
+
+/**
+ * Visualización del formulario en una ruta.
+ */
+function test_mod_menu() {
+  $items = array();
+
+  $items['personas/formulario-jovenes'] = array(
+    'title' => 'Registro de jovenes',
+    'description' => 'A form to mess around with.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('test_mod_form'),
+    'access callback' => TRUE
+  );
+
+  return $items;
+}
+
+/**
+ * Retorno de países.
+ */
+function getContries($api_key){
+	$res = getServiceResponse("https://battuta.medunes.net/api/country/all/?key=$api_key");
+	$response = [];
+
+	foreach ($res as $value) {
+		$response[$value->code] = $value->name;
+	}
+
+  return $response;
+}
+
+
+/**
+ * Retorno de departamentos.
+ */
+function getDeptos($api_key, $country_code){
+	$res = getServiceResponse("https://battuta.medunes.net/api/region/$country_code/all/?key=$api_key");
+	$response = [];
+
+	foreach ($res as $value) {
+		$response[$value->region] = $value->region;
+	}
+
+	return $response;
+}
+
+/**
+ * Función encargada del llamado a web services.
+ */
+function getServiceResponse($url){
+  $ch = curl_init();
+	curl_setopt($ch, CURLOPT_URL, $url);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	$res = curl_exec($ch);
+	curl_close($ch);
+  $res = json_decode($res);
+	return $res;
+}
+
+/**
+ * Método para el guardado de nodos.
+ */
+function saveNode($params){
+	$params = reset($params);
+	$node = new stdClass();
+  $node->title = $params[1]['names'];
+  $node->type = "person";
+  node_object_prepare($node);
+  $node->language = LANGUAGE_NONE;
+  $node->uid = 1;
+  $node->status = 1;
+  $node->promote = 0;
+	$node->comment = 1;
+	$node->field_name[$node->language][]['value'] = $params[1]['names'];
+  $node->field_surname[$node->language][]['value'] = $params[1]['s_names'];
+  $node->field_address[$node->language][]['value'] = $params[1]['address'];
+  $node->field_country[$node->language][]['value'] = $params[1]['country'];
+  $node->field_depto[$node->language][]['value'] = $params[2]['depto'];
+  $node->field_image_p = $params[2]['image'];
+  $node->field_phone[$node->language][]['value'] = $params[2]['phone'];
+  $node->field_civil[$node->language][]['value'] = $params[2]['state'];
+  $node->field_age[$node->language][]['value'] = $params[3]['age'];
+  $node->field_description[$node->language][]['value'] = $params[3]['description'];
+  $node->field_terms[$node->language][]['value'] = $params[3]['acept'];
+  $node = node_submit($node);
+	node_save($node);
+
+	$file = file_load($params[2]['image']);
+  $file->status = FILE_STATUS_PERMANENT;
+  $file_saved = file_save($file);
+  //variable_set('image', $file_saved->fid);
+}

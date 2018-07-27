@@ -1,0 +1,11 @@
+name = testmod
+
+description = Modulo de prueba
+
+core = 7.x
+
+package = tools
+
+version = 7.x-1.0-dev
+
+configure = admin/config/content/testmod
